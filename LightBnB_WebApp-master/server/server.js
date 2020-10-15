@@ -22,12 +22,12 @@ app.use(bodyParser.json());
 const apiRouter = express.Router();
 apiRoutes(apiRouter, database);
 app.use('/api', apiRouter);
-// /localhost/api  
+
 // /user/endpoints
 const userRouter = express.Router();
 userRoutes(userRouter, database);
 app.use('/users', userRouter);
-// /localhost/users 
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get("/test", (req, res) => {
