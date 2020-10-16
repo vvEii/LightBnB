@@ -93,6 +93,8 @@ const getAllProperties = (options, limit = 10) => {
   const value = [];
   if (options.city) {
     value.push(`%${options.city}%`);
+    // ILIKE is not case sensetive, since user may typy in vancouver, and '%vancouver%' would not return
+    // any data from database due to the city in database is 'Vancouver'
     queryString += `WHERE city ILIKE $${value.length} `;
   }
 
@@ -137,6 +139,27 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function (property) {
-  const queryString = `INSERT INTO properties ()`;
+  const queryString = `INSERT INTO properties (title, description, owner_id, cover_photo_url, thumbnail_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, province, city, country, street, post_code) 
+  VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *;`;
+  const values = [
+    property.title,
+    property.description,
+    property.owner_id,
+    property.cover_photo_url,
+    property.thumbnail_photo_url,
+    property.cost_per_night * 100,
+    property.parking_spaces,
+    property.number_of_bathrooms,
+    property.number_of_bedrooms,
+    property.province,
+    property.city,
+    property.country,
+    property.street,
+    property.post_code,
+  ];
+  return pool.query(queryString, values).then((res) => {
+    console.log(res.rows);
+    return res.rows;
+  });
 };
 exports.addProperty = addProperty;
