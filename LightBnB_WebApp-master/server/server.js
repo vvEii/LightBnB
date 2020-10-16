@@ -10,10 +10,12 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-app.use(cookieSession({
-  name: 'session',
-  keys: ['key1']
-}));
+app.use(
+  cookieSession({
+    name: 'session',
+    keys: ['key1'],
+  })
+);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -30,8 +32,8 @@ app.use('/users', userRouter);
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get("/test", (req, res) => {
-  res.send("🤗");
+app.get('/test', (req, res) => {
+  res.send('🤗');
 });
 
 const port = process.env.PORT || 3000;

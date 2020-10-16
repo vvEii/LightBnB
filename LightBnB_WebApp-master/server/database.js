@@ -86,11 +86,48 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = (options, limit = 10) => {
-  const queryString = `
-  SELECT * FROM properties LIMIT $1;
+  let queryString = `
+  SELECT properties.*, AVG(property_reviews.rating) AS average_rating
+  FROM properties JOIN property_reviews ON properties.id = property_id
   `;
-  const value = [limit];
-  return pool.query(queryString, value).then((res) => res.rows);
+  const value = [];
+  if (options.city) {
+    value.push(`%${options.city}%`);
+    queryString += `WHERE city ILIKE $${value.length} `;
+  }
+
+  if (options.owner_id) {
+    value.push(options.owner_id);
+    queryString += `AND owner_id = $${value.length} `;
+  }
+
+  if (options.minimum_price_per_night) {
+    //VERY TRICKY!! because the price in database is in cents
+    value.push(options.minimum_price_per_night * 100);
+    queryString += `AND cost_per_night >= $${value.length} `;
+  }
+  if (options.maximum_price_per_night) {
+    //VERY TRICKY!! because the price in database is in cents
+    value.push(options.maximum_price_per_night * 100);
+    queryString += `AND cost_per_night <= $${value.length} `;
+  }
+  queryString += `GROUP BY properties.id\n`;
+  if (options.minimum_rating) {
+    value.push(options.minimum_rating);
+    queryString += `HAVING avg(rating) >= $${value.length} `;
+  }
+
+  value.push(limit);
+
+  queryString += ` 
+  ORDER BY cost_per_night
+  LIMIT $${value.length};`;
+  console.log(value);
+  console.log(queryString);
+  return pool.query(queryString, value).then((res) => {
+    console.log(res.rows);
+    return res.rows;
+  });
 };
 exports.getAllProperties = getAllProperties;
 
@@ -100,9 +137,6 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function (property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const queryString = `INSERT INTO properties ()`;
 };
 exports.addProperty = addProperty;
